@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   Pressable,
+  Animated,
 } from 'react-native';
 
 import Header from './components/Header';
@@ -16,9 +17,19 @@ import { colors } from './styles';
 export default function App() {
   const [contexts, setContexts] = useState([]);
   const [currentId, setCurrentId] = useState(null);
+  const [taskModalOpened, setTaskModalOpened] = useState(false);
+  const sliderAnim = useRef(new Animated.Value(-50).current);
 
   useEffect(() => {
-    fetchContexts();
+    fetchContexts()
+      .then((data) => {
+        setContexts(data);
+        const active = data.find((ctx) => ctx.active) || data[0];
+        setCurrentId(active?.id);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   const getCurrentTasks = (id) =>
@@ -58,6 +69,24 @@ export default function App() {
     setCurrentId(id);
   };
 
+  async function showSlider() {
+    setTaskModalOpened(true);
+    Animated.timing(sliderAnim, {
+      toValue: 0,
+      duration: 3000,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  const hideSlider = () => {
+    setTaskModalOpened(false);
+    Animated.timing(sliderAnim, {
+      toValue: -50,
+      duration: 3000,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -79,34 +108,54 @@ export default function App() {
         )}
         keyExtractor={(item) => item.id}
       />
-      <Pressable onPress={addTask}>
+      <Pressable onPress={showSlider}>
         <Image style={styles.createBtn} source={require('./assets/plus.png')} />
       </Pressable>
+      <Animated.View
+        style={[
+          styles.slider,
+          {
+            transform: [
+              {
+                translateY: sliderAnim,
+              },
+            ],
+          },
+        ]}
+      >
+        <Text>Modal</Text>
+      </Animated.View>
+      {/* <View style={styles.centeredView}> */}
+      {/*   <Modal */}
+      {/*     animationType="slide" */}
+      {/*     transparent */}
+      {/*     visible={taskModalOpened} */}
+      {/*     onRequestClose={() => { */}
+      {/*       setTaskModalOpened(false); */}
+      {/*     }} */}
+      {/*   > */}
+      {/*     <View style={styles.centeredView}> */}
+      {/*       <Text>Modal</Text> */}
+      {/*     </View> */}
+      {/*   </Modal> */}
+      {/* </View> */}
     </View>
   );
+}
 
-  async function addTask() {
-    console.log('=====> add task <=====');
-  }
-
-  async function fetchContexts() {
-    try {
-      const response = await fetch('http://10.0.2.2:3000/task', {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-      const contexts = await response.json();
-      setContexts(contexts);
-
-      if (!currentId && contexts.length) {
-        setCurrentId(contexts[0].id);
-      }
-    } catch (err) {
-      console.error(err);
-      setContexts([]);
-    }
+async function fetchContexts() {
+  try {
+    const response = await fetch('http://10.0.2.2:3000/task', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
+    const contexts = await response.json();
+    return contexts;
+  } catch (err) {
+    console.error(err);
+    return [];
   }
 }
 
@@ -136,5 +185,14 @@ const styles = StyleSheet.create({
     bottom: 25,
     width: 64,
     height: 64,
+  },
+  slider: {
+    position: 'absolute',
+    bottom: '-50%',
+    left: 0,
+    right: 0,
+    height: '50%',
+    backgroundColor: colors.primary,
+    transition: 'transform 0.3s',
   },
 });
