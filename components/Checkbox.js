@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Image, Pressable } from 'react-native';
 
+import { colors } from '../styles';
+
 export default ({ onToggle, done }) => {
   const onPress = () => {
     onToggle();
@@ -22,7 +24,7 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: colors.text1,
     alignItems: 'center',
     justifyContent: 'center',
   },

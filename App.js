@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -8,11 +9,13 @@ import {
   Pressable,
 } from 'react-native';
 
+import Header from './components/Header';
 import Task from './components/Task';
+import { colors } from './styles';
 
 export default function App() {
   const [contexts, setContexts] = useState([]);
-  const [currentId, setCurrent] = useState(null);
+  const [currentId, setCurrentId] = useState(null);
 
   useEffect(() => {
     fetchContexts();
@@ -20,9 +23,6 @@ export default function App() {
 
   const getCurrentTasks = (id) =>
     contexts.find((ctx) => ctx.id === id)?.tasks || [];
-
-  const getCurrentName = () =>
-    contexts.find((c) => c.id === currentId)?.name || 'Select a context';
 
   const toggleTaskDone = (id, done) => {
     // TODO: Should request API to update task done
@@ -49,21 +49,23 @@ export default function App() {
     setContexts(updated);
   };
 
+  const onDelete = (id) => {
+    console.log('=====> delete task <=====');
+  };
+
+  const toggleContext = (id) => {
+    console.log('select context id', id);
+    setCurrentId(id);
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>{getCurrentName()}</Text>
-        <Pressable
-          onPress={() => {
-            console.log('press');
-          }}
-        >
-          <Image
-            style={{ width: 32, height: 32 }}
-            source={require('./assets/menu.png')}
-          />
-        </Pressable>
-      </View>
+      <StatusBar barStyle="light-content" />
+      <Header
+        contextId={currentId}
+        contexts={contexts}
+        toggleContext={toggleContext}
+      />
       <FlatList
         data={getCurrentTasks(currentId)}
         renderItem={({ item }) => (
@@ -72,12 +74,20 @@ export default function App() {
             content={item.content}
             done={item.done}
             onToggle={toggleTaskDone}
+            onDelete={onDelete}
           />
         )}
         keyExtractor={(item) => item.id}
       />
+      <Pressable onPress={addTask}>
+        <Image style={styles.createBtn} source={require('./assets/plus.png')} />
+      </Pressable>
     </View>
   );
+
+  async function addTask() {
+    console.log('=====> add task <=====');
+  }
 
   async function fetchContexts() {
     try {
@@ -91,7 +101,7 @@ export default function App() {
       setContexts(contexts);
 
       if (!currentId && contexts.length) {
-        setCurrent(contexts[0].id);
+        setCurrentId(contexts[0].id);
       }
     } catch (err) {
       console.error(err);
@@ -101,21 +111,30 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    height: '100%',
+  },
   header: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#2D0605',
+    backgroundColor: colors.primary,
     padding: 20,
     width: '100%',
   },
   headerText: {
-    color: '#ffffff',
+    color: colors.text2,
     fontSize: 20,
     textAlign: 'left',
   },
   text: {
-    color: '#000000',
+    color: colors.text1,
+  },
+  createBtn: {
+    position: 'absolute',
+    right: 25,
+    bottom: 25,
+    width: 64,
+    height: 64,
   },
 });

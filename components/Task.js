@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 
 import CheckBox from './Checkbox';
+import { colors } from '../styles';
 
-export default ({ id, content, done, onToggle }) => {
+export default ({ id, content, done, onToggle, onDelete }) => {
   const toggle = () => {
     onToggle(id, done);
   };
@@ -11,17 +12,28 @@ export default ({ id, content, done, onToggle }) => {
   return (
     <View style={styles.item}>
       <CheckBox done={done} onToggle={toggle} />
-      <Text style={styles.itemText}>{content}</Text>
+      <Text style={styles.text}>{content}</Text>
+      <Pressable onPress={() => onDelete(id)}>
+        <Image style={styles.delete} source={require('../assets/delete.png')} />
+      </Pressable>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   item: {
+    display: 'flex',
+    flexDirection: 'row',
     padding: 20,
   },
-  itemText: {
+  text: {
     fontSize: 20,
-    color: '#000000',
+    color: colors.text1,
+    marginLeft: 10,
+    flex: 1,
+  },
+  delete: {
+    width: 28,
+    height: 28,
   },
 });
