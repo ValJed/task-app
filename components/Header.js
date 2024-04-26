@@ -2,7 +2,7 @@ import { Picker } from '@react-native-picker/picker';
 import React, { useRef, useState } from 'react';
 import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
 
-import { colors } from '../styles';
+import { colors } from '../lib/styles';
 
 export default ({ contextId, contexts, toggleContext }) => {
   const pickerRef = useRef();

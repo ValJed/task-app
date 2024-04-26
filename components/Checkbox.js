@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Image, Pressable } from 'react-native';
 
-import { colors } from '../styles';
+import { colors } from '../lib/styles';
 
 export default ({ onToggle, done }) => {
   const onPress = () => {

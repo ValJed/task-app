@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 
 import CheckBox from './Checkbox';
-import { colors } from '../styles';
+import { colors } from '../lib/styles';
 
 export default ({ id, content, done, onToggle, onDelete }) => {
   const toggle = () => {
