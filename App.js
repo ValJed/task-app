@@ -5,7 +5,6 @@ import Main from './components/Main';
 
 const client = new QueryClient();
 
-console.log('client: ', client);
 export default function App() {
   return (
     <QueryClientProvider client={client}>

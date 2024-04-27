@@ -4,16 +4,8 @@ import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
 
 import { colors } from '../lib/styles';
 
-export default ({ contextId, contexts, toggleContext }) => {
+export default ({ selected, contexts, toggleContext }) => {
   const pickerRef = useRef();
-
-  const getCurrentName = () =>
-    contexts.find((c) => c.id === contextId)?.name || 'Select a context';
-
-  const current = {
-    id: contextId,
-    name: getCurrentName(),
-  };
 
   const pickerItems = contexts.map(({ id, name }) => (
     <Picker.Item key={id} label={name} value={id} />
@@ -26,21 +18,25 @@ export default ({ contextId, contexts, toggleContext }) => {
     <View style={styles.header}>
       <View style={styles.select}>
         <Pressable onPress={openPicker}>
-          <Text style={styles.headerText}>{current.name}</Text>
+          <Text style={styles.headerText}>
+            {selected?.name || 'Create a context'}
+          </Text>
         </Pressable>
         <Image
           style={styles.selectImg}
           source={require('../assets/chevron.png')}
         />
       </View>
-      <Picker
-        ref={pickerRef}
-        style={styles.headerText}
-        selectedValue={current.id}
-        onValueChange={(value) => toggleContext(value)}
-      >
-        {pickerItems}
-      </Picker>
+      {selected && (
+        <Picker
+          ref={pickerRef}
+          style={styles.headerText}
+          selectedValue={selected.id}
+          onValueChange={(value) => toggleContext(value)}
+        >
+          {pickerItems}
+        </Picker>
+      )}
       <Pressable
         onPress={() => {
           console.log('press');

@@ -4,11 +4,8 @@ import { StyleSheet, View, Image, Pressable } from 'react-native';
 import { colors } from '../lib/styles';
 
 export default ({ onToggle, done }) => {
-  const onPress = () => {
-    onToggle();
-  };
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onToggle}>
       <View style={styles.base}>
         {done && (
           <Image style={styles.check} source={require('../assets/check.png')} />

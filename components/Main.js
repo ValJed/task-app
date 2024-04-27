@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   StatusBar,
   StyleSheet,
@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 
 import Header from './Header';
-import Task from './Task';
-import { fetchContexts, createTask, deletedTask } from '../lib/api';
+import List from './List';
+import { fetchContexts } from '../lib/api';
 import { colors } from '../lib/styles';
 
 /* const { height: screenheight } = Dimensions.get('window'); */
@@ -23,27 +23,34 @@ const sliderSize = 70;
 const inputSize = sliderSize - 20;
 
 export default () => {
-  const [currentId, setCurrentId] = useState(null);
+  const [context, setContext] = useState(null);
   const [taskModalOpened, setTaskModalOpened] = useState(false);
   const [taskInput, setTaskInput] = useState('');
   const sliderAnim = useRef(new Animated.Value(0)).current;
   const btnAnim = useRef(new Animated.Value(0)).current;
   const {
-    isPending: isPendingCtx,
-    isError: isErrCtx,
-    error: contextsErr,
+    isPending,
+    isError,
+    error,
     data: contexts,
   } = useQuery({
     queryKey: ['contexts'],
     queryFn: fetchContexts,
   });
 
-  if (isPendingCtx) {
+  useEffect(() => {
+    if (!contexts || !contexts.length) {
+      return setContext(null);
+    }
+    setContext(contexts[0]);
+  }, [contexts]);
+
+  if (isPending) {
     return <Text>Loading...</Text>;
   }
 
-  if (isErrCtx) {
-    return <Text>Error: {contextsErr.message}</Text>;
+  if (isError) {
+    return <Text>Error: {error.message}</Text>;
   }
 
   const btnSpin = btnAnim.interpolate({
@@ -51,65 +58,11 @@ export default () => {
     outputRange: ['0deg', '45deg'],
   });
 
-  const getCurrentTasks = (id) =>
-    contexts.find((ctx) => ctx.id === id)?.tasks || [];
-
-  const toggleTaskDone = (id, done) => {
-    /* // TODO: Should request API to update task done */
-    /* const updated = contexts.map((ctx) => { */
-    /*   if (ctx.id !== currentId) { */
-    /*     return ctx; */
-    /*   } */
-    /**/
-    /*   return { */
-    /*     ...ctx, */
-    /*     tasks: ctx.tasks.map((task) => { */
-    /*       if (task.id !== id) { */
-    /*         return task; */
-    /*       } */
-    /**/
-    /*       return { */
-    /*         ...task, */
-    /*         done: !done, */
-    /*       }; */
-    /*     }), */
-    /*   }; */
-    /* }); */
-    /**/
-    /* setContexts(updated); */
-  };
-
-  const onDelete = async (id) => {
-    /* try { */
-    /*   const response = await fetch(`http://10.0.2.2:3000/task/${id}`, { */
-    /*     method: 'DELETE', */
-    /*     headers: { */
-    /*       Accept: 'application/json', */
-    /*       'Content-Type': 'application/json', */
-    /*     }, */
-    /*   }); */
-    /*   const deleted = await response.json(); */
-    /*   console.log('deleted', deleted); */
-    /**/
-    /*   const updated = contexts.map((ctx) => { */
-    /*     if (ctx.id !== currentId) { */
-    /*       return ctx; */
-    /*     } */
-    /**/
-    /*     return { */
-    /*       ...ctx, */
-    /*       tasks: ctx.tasks.filter((task) => task.id !== id), */
-    /*     }; */
-    /*   }); */
-    /*   setContexts(updated); */
-    /* } catch (err) { */
-    /*   console.error(err); */
-    /* } */
-  };
-
   const toggleContext = (id) => {
-    console.log('select context id', id);
-    setCurrentId(id);
+    const selected = contexts.find((ctx) => ctx.id === id);
+    if (selected) {
+      return setContext(selected);
+    }
   };
 
   async function createTask() {
@@ -198,23 +151,11 @@ export default () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <Header
-        contextId={currentId}
+        selected={context}
         contexts={contexts}
         toggleContext={toggleContext}
       />
-      <FlatList
-        data={getCurrentTasks(currentId)}
-        renderItem={({ item }) => (
-          <Task
-            id={item.id}
-            content={item.content}
-            done={item.done}
-            onToggle={toggleTaskDone}
-            onDelete={onDelete}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-      />
+      <List context={context} />
       <Animated.View
         style={[
           styles.createBtnView,
