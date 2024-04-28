@@ -6,9 +6,6 @@ import { fetchTasks, createTask, deleteTask, updateTask } from '../lib/api';
 
 export default ({ context }) => {
   const queryClient = useQueryClient();
-  if (!context) {
-    return;
-  }
   const {
     isPending: isPendingCtx,
     isError: isErrCtx,
@@ -22,28 +19,22 @@ export default ({ context }) => {
   const { mutate: mutateDone, error: doneErr } = useMutation({
     mutationFn: ({ id, done }) => updateTask(id, { done }),
     onSuccess: (result) => {
-      console.log('result', result);
-      queryClient.invalidateQueries({ queryKey: ['tasks', context.id] });
-      /* queryClient.setQueryData(['tasks', context.id], (tasks) => */
-      /*   tasks.map((task) => (task.id === result.id ? result : task)), */
-      /* ); */
+      queryClient.setQueryData(['tasks', context.id], (tasks) => {
+        return tasks.map((task) => (task.id === result.id ? result : task));
+      });
     },
   });
 
   const { mutate: mutateDelete, error: deleteErr } = useMutation({
     mutationFn: deleteTask,
     onSuccess: (result) => {
-      /* queryClient.invalidateQueries({ queryKey: ['tasks', contextId] }); */
-
-      queryClient.setQueryData(['tasks', context.id], (tasks) =>
-        tasks.filter((task) => task.id !== result.id),
-      );
+      queryClient.setQueryData(['tasks', context.id], (tasks) => {
+        return tasks.filter((task) => task.id !== result.id);
+      });
     },
   });
 
-  console.log('tasks', tasks);
-
-  if (isPendingCtx) {
+  if (isPendingCtx || !context) {
     return <Text>Loading...</Text>;
   }
 

@@ -43,7 +43,7 @@ export default ({ id, content, done, mutateDone, mutateDelete }) => {
     <View style={styles.item}>
       <CheckBox done={done} onToggle={onToggle} />
       <Text style={styles.text}>{content}</Text>
-      <Pressable onPress={mutateDelete}>
+      <Pressable onPress={() => mutateDelete(id)}>
         <Image style={styles.delete} source={require('../assets/delete.png')} />
       </Pressable>
     </View>

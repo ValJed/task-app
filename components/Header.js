@@ -14,6 +14,10 @@ export default ({ selected, contexts, toggleContext }) => {
     pickerRef.current.focus();
   };
 
+  if (!selected) {
+    return;
+  }
+
   return (
     <View style={styles.header}>
       <View style={styles.select}>

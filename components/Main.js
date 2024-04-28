@@ -1,10 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   StatusBar,
   StyleSheet,
   View,
-  FlatList,
   Image,
   Pressable,
   Animated,
@@ -14,7 +13,7 @@ import {
 
 import Header from './Header';
 import List from './List';
-import { fetchContexts } from '../lib/api';
+import { fetchContexts, createTask } from '../lib/api';
 import { colors } from '../lib/styles';
 
 /* const { height: screenheight } = Dimensions.get('window'); */
@@ -23,6 +22,7 @@ const sliderSize = 70;
 const inputSize = sliderSize - 20;
 
 export default () => {
+  const queryClient = useQueryClient();
   const [context, setContext] = useState(null);
   const [taskModalOpened, setTaskModalOpened] = useState(false);
   const [taskInput, setTaskInput] = useState('');
@@ -36,6 +36,18 @@ export default () => {
   } = useQuery({
     queryKey: ['contexts'],
     queryFn: fetchContexts,
+  });
+
+  const { mutate: mutateCreateTask, error: createErr } = useMutation({
+    mutationFn: () => createTask(taskInput, context.id),
+    onSuccess: (result) => {
+      console.log('result', result);
+      queryClient.setQueryData(['tasks', context.id], (tasks) => {
+        hideSlider();
+        setTaskInput('');
+        return [result, ...tasks];
+      });
+    },
   });
 
   useEffect(() => {
@@ -64,44 +76,6 @@ export default () => {
       return setContext(selected);
     }
   };
-
-  async function createTask() {
-    /* if (!taskInput) { */
-    /*   return; */
-    /* } */
-    /**/
-    /* console.log('taskInput', taskInput); */
-    /**/
-    /* try { */
-    /*   const response = await fetch('http://10.0.2.2:3000/task', { */
-    /*     method: 'POST', */
-    /*     headers: { */
-    /*       Accept: 'application/json', */
-    /*       'Content-Type': 'application/json', */
-    /*     }, */
-    /*     body: JSON.stringify({ */
-    /*       content: taskInput, */
-    /*       context_id: currentId, */
-    /*     }), */
-    /*   }); */
-    /*   const task = await response.json(); */
-    /**/
-    /*   const updated = contexts.map((ctx) => { */
-    /*     if (ctx.id !== currentId) { */
-    /*       return ctx; */
-    /*     } */
-    /**/
-    /*     return { */
-    /*       ...ctx, */
-    /*       tasks: [task, ...ctx.tasks], */
-    /*     }; */
-    /*   }); */
-    /*   setContexts(updated); */
-    /*   setTaskInput(''); */
-    /* } catch (err) { */
-    /*   console.error(err); */
-    /* } */
-  }
 
   function toggleSlider() {
     if (taskModalOpened) {
@@ -155,7 +129,7 @@ export default () => {
         contexts={contexts}
         toggleContext={toggleContext}
       />
-      <List context={context} />
+      {context && <List context={context} />}
       <Animated.View
         style={[
           styles.createBtnView,
@@ -179,7 +153,7 @@ export default () => {
           value={taskInput}
           onContentSizeChange={onInputSizeChange}
         />
-        <Pressable style={styles.sendBtn} onPress={createTask}>
+        <Pressable style={styles.sendBtn} onPress={mutateCreateTask}>
           <Image
             style={styles.sendBtnImg}
             source={require('../assets/send.png')}
@@ -250,7 +224,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     /* width: '100%', */
-    /* flexGrow: 1, */
+    flexGrow: 1,
     height: inputSize,
     borderColor: '#fff',
     borderRadius: 10,
