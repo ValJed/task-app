@@ -9,6 +9,7 @@ import {
   Animated,
   Text,
   TextInput,
+  Dimensions,
 } from 'react-native';
 
 import Header from './Header';
@@ -16,18 +17,22 @@ import List from './List';
 import { fetchContexts, createTask } from '../lib/api';
 import { colors } from '../lib/styles';
 
-/* const { height: screenheight } = Dimensions.get('window'); */
+const { width: screenWidth } = Dimensions.get('window');
+console.log('screenWidth', screenWidth);
 /* const halfScreen = screenheight / 2; */
-const sliderSize = 70;
-const inputSize = sliderSize - 20;
+/* const sliderSize = 70; */
+/* const inputSize = sliderSize - 20; */
 
 export default () => {
   const queryClient = useQueryClient();
   const [context, setContext] = useState(null);
   const [taskModalOpened, setTaskModalOpened] = useState(false);
   const [taskInput, setTaskInput] = useState('');
-  const sliderAnim = useRef(new Animated.Value(0)).current;
+  const [inputHeight, setInputHeight] = useState(40);
   const btnAnim = useRef(new Animated.Value(0)).current;
+  const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
+  const sliderAnim = useRef(new Animated.Value(-sliderSize)).current;
+
   const {
     isPending,
     isError,
@@ -41,7 +46,6 @@ export default () => {
   const { mutate: mutateCreateTask, error: createErr } = useMutation({
     mutationFn: () => createTask(taskInput, context.id),
     onSuccess: (result) => {
-      console.log('result', result);
       queryClient.setQueryData(['tasks', context.id], (tasks) => {
         hideSlider();
         setTaskInput('');
@@ -49,6 +53,14 @@ export default () => {
       });
     },
   });
+
+  useEffect(() => {
+    Animated.timing(sliderAnim, {
+      toValue: -sliderSize,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [sliderAnim, sliderSize]);
 
   useEffect(() => {
     if (!contexts || !contexts.length) {
@@ -115,10 +127,10 @@ export default () => {
     }).start();
   };
 
-  const onInputSizeChange = (e) => {
-    console.log('sizes', e.contentSize);
-    console.log('=====> RESIZE BRO <=====');
-    // TODO resize input and slider
+  const onInputSizeChange = ({ nativeEvent }) => {
+    if (nativeEvent.contentSize.height < 80) {
+      setInputHeight(nativeEvent.contentSize.height);
+    }
   };
 
   return (
@@ -133,7 +145,9 @@ export default () => {
       <Animated.View
         style={[
           styles.createBtnView,
-          { transform: [{ translateY: sliderAnim }, { rotate: btnSpin }] },
+          {
+            transform: [{ translateY: sliderAnim }, { rotate: btnSpin }],
+          },
         ]}
       >
         <Pressable onPress={toggleSlider}>
@@ -144,10 +158,16 @@ export default () => {
         </Pressable>
       </Animated.View>
       <Animated.View
-        style={[styles.slider, { transform: [{ translateY: sliderAnim }] }]}
+        style={[
+          styles.slider,
+          {
+            transform: [{ translateY: sliderAnim }],
+            bottom: -sliderSize,
+          },
+        ]}
       >
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { height: inputHeight }]}
           multiline
           onChangeText={setTaskInput}
           value={taskInput}
@@ -213,21 +233,18 @@ const styles = StyleSheet.create({
   slider: {
     display: 'flex',
     flexDirection: 'row',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     position: 'absolute',
-    bottom: -sliderSize,
     left: 0,
     width: '100%',
-    height: sliderSize,
     backgroundColor: colors.primary,
     padding: 10,
   },
   textInput: {
-    /* width: '100%', */
-    flexGrow: 1,
-    height: inputSize,
+    width: screenWidth - 65,
     borderColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 20,
     borderWidth: 1,
     color: colors.text2,
     padding: 10,
@@ -236,7 +253,6 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     marginLeft: 10,
-    flexShrink: 0,
   },
   sendBtnImg: {
     width: '100%',
