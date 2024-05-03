@@ -48,19 +48,29 @@ export default () => {
     onSuccess: (result) => {
       queryClient.setQueryData(['tasks', context.id], (tasks) => {
         hideSlider();
-        setTaskInput('');
         return [result, ...tasks];
       });
     },
   });
 
   useEffect(() => {
-    Animated.timing(sliderAnim, {
-      toValue: -sliderSize,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [sliderAnim, sliderSize]);
+    if (!taskModalOpened) {
+      setTimeout(() => {
+        setInputHeight(40);
+        setTaskInput('');
+      }, 300);
+    }
+  }, [taskModalOpened]);
+
+  useEffect(() => {
+    if (taskModalOpened) {
+      Animated.timing(sliderAnim, {
+        toValue: -sliderSize,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [taskModalOpened, sliderSize, sliderAnim]);
 
   useEffect(() => {
     if (!contexts || !contexts.length) {
