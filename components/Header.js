@@ -1,11 +1,19 @@
 import { Picker } from '@react-native-picker/picker';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
 
 import { colors } from '../lib/styles';
 
-export default ({ selected, contexts, toggleContext }) => {
+export default ({
+  selected,
+  contexts,
+  toggleContext,
+  showContexts,
+  setShowContexts,
+  updateContext,
+}) => {
   const pickerRef = useRef();
+  console.log('selected', selected);
 
   const pickerItems = contexts.map(({ id, name }) => (
     <Picker.Item key={id} label={name} value={id} />
@@ -13,10 +21,6 @@ export default ({ selected, contexts, toggleContext }) => {
   const openPicker = () => {
     pickerRef.current.focus();
   };
-
-  if (!selected) {
-    return;
-  }
 
   return (
     <View style={styles.header}>
@@ -26,10 +30,10 @@ export default ({ selected, contexts, toggleContext }) => {
             {selected?.name || 'Create a context'}
           </Text>
         </Pressable>
-        <Image
-          style={styles.selectImg}
-          source={require('../assets/chevron.png')}
-        />
+        {/* <Image */}
+        {/*   style={styles.selectImg} */}
+        {/*   source={require('../assets/chevron.png')} */}
+        {/* /> */}
       </View>
       {selected && (
         <Picker
@@ -37,10 +41,40 @@ export default ({ selected, contexts, toggleContext }) => {
           style={styles.headerText}
           selectedValue={selected.id}
           onValueChange={(value) => toggleContext(value)}
+          dropdownIconColor={colors.text2}
         >
           {pickerItems}
         </Picker>
       )}
+      <Text>toto</Text>
+      <Pressable
+        onPress={() => {
+          updateContext({ ...selected, active: !selected.active });
+        }}
+      >
+        <Image
+          style={styles.image}
+          source={
+            selected?.active
+              ? require('../assets/star_yellow.png')
+              : require('../assets/star.png')
+          }
+        />
+      </Pressable>
+      <Pressable
+        onPress={() => {
+          setShowContexts(!showContexts);
+        }}
+      >
+        <Image
+          style={styles.image}
+          source={
+            showContexts
+              ? require('../assets/checklist.png')
+              : require('../assets/queue.png')
+          }
+        />
+      </Pressable>
       <Pressable
         onPress={() => {
           console.log('press');
@@ -67,6 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flexGrow: 0,
   },
   selectImg: {
     width: 16,
@@ -79,7 +114,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   },
   image: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
   },
 });

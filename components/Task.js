@@ -7,34 +7,6 @@ import { updateTask, deleteTask } from '../lib/api';
 import { colors } from '../lib/styles';
 
 export default ({ id, content, done, mutateDone, mutateDelete }) => {
-  /* const queryClient = useQueryClient(); */
-  /* const { mutate: mutateDone, error: doneErr } = useMutation({ */
-  /*   mutationFn: () => updateTask(id, { done: !done }), */
-  /*   onSuccess: (result) => { */
-  /*     queryClient.invalidateQueries({ queryKey: ['tasks', contextId] }); */
-  /*     /* queryClient.setQueryData(['tasks', contextId], (tasks) => */
-  /*     /*   tasks.map((task) => (task.id === result.id ? result : task)), */
-  /*     /* ); */
-  /*   }, */
-  /* }); */
-  /**/
-  /* const { mutate: mutateDelete, error: deleteErr } = useMutation({ */
-  /*   mutationFn: () => deleteTask(id), */
-  /*   onSuccess: (result) => { */
-  /*     console.log('result', result); */
-  /*     queryClient.invalidateQueries({ queryKey: ['tasks', contextId] }); */
-  /**/
-  /*     queryClient.setQueryData(['tasks', contextId], (tasks) => */
-  /*       tasks.filter((task) => task.id !== result.id), */
-  /*     ); */
-  /*   }, */
-  /* }); */
-
-  /* if (doneErr || deleteErr) { */
-  /*   // TODO: Set real message */
-  /*   return <Text>Error: {doneErr.message}</Text>; */
-  /* } */
-
   const onToggle = () => {
     mutateDone({ id, done: !done });
   };

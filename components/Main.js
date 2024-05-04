@@ -12,26 +12,31 @@ import {
   Dimensions,
 } from 'react-native';
 
+import ContextList from './ContextList';
 import Header from './Header';
-import List from './List';
-import { fetchContexts, createTask } from '../lib/api';
+import Loading from './Loading';
+import TaskList from './TaskList';
+import {
+  fetchContexts,
+  createTask,
+  createContext,
+  deleteContext,
+  updateContext,
+} from '../lib/api';
 import { colors } from '../lib/styles';
 
 const { width: screenWidth } = Dimensions.get('window');
-console.log('screenWidth', screenWidth);
-/* const halfScreen = screenheight / 2; */
-/* const sliderSize = 70; */
-/* const inputSize = sliderSize - 20; */
 
 export default () => {
   const queryClient = useQueryClient();
   const [context, setContext] = useState(null);
-  const [taskModalOpened, setTaskModalOpened] = useState(false);
-  const [taskInput, setTaskInput] = useState('');
+  const [sliderOpened, setSliderOpened] = useState(false);
+  const [input, setInput] = useState('');
   const [inputHeight, setInputHeight] = useState(40);
+  const [showContexts, setShowContexts] = useState(false);
   const btnAnim = useRef(new Animated.Value(0)).current;
   const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
-  const sliderAnim = useRef(new Animated.Value(-sliderSize)).current;
+  const sliderAnim = useRef(new Animated.Value(0)).current;
 
   const {
     isPending,
@@ -43,48 +48,84 @@ export default () => {
     queryFn: fetchContexts,
   });
 
-  const { mutate: mutateCreateTask, error: createErr } = useMutation({
-    mutationFn: () => createTask(taskInput, context.id),
+  const { mutate: mutateCreateTask, error: createTaskErr } = useMutation({
+    mutationFn: createTask,
     onSuccess: (result) => {
-      queryClient.setQueryData(['tasks', context.id], (tasks) => {
-        hideSlider();
-        return [result, ...tasks];
+      hideSlider();
+      queryClient.setQueryData(['tasks', context.id], (items) => {
+        return [result, ...items];
+      });
+    },
+  });
+
+  const { mutate: mutateCreateContext, error: createCtxErr } = useMutation({
+    mutationFn: createContext,
+    onSuccess: (result) => {
+      console.log('result', result);
+      hideSlider();
+      queryClient.setQueryData(['tasks', context.id], (items) => {
+        return [result, ...items];
+      });
+    },
+  });
+
+  const { mutate: mutateUpdateContext, error: updateCtxErr } = useMutation({
+    mutationFn: updateContext,
+    onSuccess: (result) => {
+      hideSlider();
+      queryClient.setQueryData(['tasks', context.id], (items) => {
+        return items.map((ctx) => (ctx.id === result.id ? result : ctx));
+      });
+    },
+  });
+
+  const { mutate: mutateDeleteContext, error: deleteCtxErr } = useMutation({
+    mutationFn: deleteContext,
+    onSuccess: (result) => {
+      if (context && context.id === result.id) {
+        setContext(contexts[0] || null);
+      }
+      queryClient.setQueryData(['contexts'], (items) => {
+        return items.filter((ctx) => ctx.id !== result.id);
       });
     },
   });
 
   useEffect(() => {
-    if (!taskModalOpened) {
+    if (!sliderOpened) {
       setTimeout(() => {
         setInputHeight(40);
-        setTaskInput('');
+        setInput('');
       }, 300);
     }
-  }, [taskModalOpened]);
+  }, [sliderOpened]);
 
   useEffect(() => {
-    if (taskModalOpened) {
+    if (sliderOpened) {
       Animated.timing(sliderAnim, {
         toValue: -sliderSize,
         duration: 300,
         useNativeDriver: true,
       }).start();
     }
-  }, [taskModalOpened, sliderSize, sliderAnim]);
+  }, [sliderOpened, sliderSize, sliderAnim]);
 
   useEffect(() => {
     if (!contexts || !contexts.length) {
+      setShowContexts(true);
       return setContext(null);
     }
+
+    setShowContexts(false);
     setContext(contexts[0]);
   }, [contexts]);
 
-  if (isPending) {
-    return <Text>Loading...</Text>;
+  if (isError) {
+    return <Loading text={`Error: ${error.message}`} />;
   }
 
-  if (isError) {
-    return <Text>Error: {error.message}</Text>;
+  if (isPending || !Array.isArray(contexts)) {
+    return <Loading text="Loading..." />;
   }
 
   const btnSpin = btnAnim.interpolate({
@@ -100,15 +141,15 @@ export default () => {
   };
 
   function toggleSlider() {
-    if (taskModalOpened) {
-      hideSlider();
-    } else {
-      showSlider();
+    if (sliderOpened) {
+      return hideSlider();
     }
+
+    showSlider();
   }
 
   async function showSlider() {
-    setTaskModalOpened(true);
+    setSliderOpened(true);
     Animated.timing(sliderAnim, {
       toValue: -sliderSize,
       duration: 300,
@@ -123,7 +164,7 @@ export default () => {
   }
 
   const hideSlider = () => {
-    setTaskModalOpened(false);
+    setSliderOpened(false);
     Animated.timing(sliderAnim, {
       toValue: 0,
       duration: 300,
@@ -142,6 +183,31 @@ export default () => {
       setInputHeight(nativeEvent.contentSize.height);
     }
   };
+  const createItem = () => {
+    if (!input) {
+      return;
+    }
+
+    if (showContexts) {
+      return mutateCreateContext(input);
+    }
+
+    if (context.id) {
+      mutateCreateTask({ content: input, context_id: context.id });
+    }
+  };
+
+  const renderList = () => {
+    if (context && !showContexts) {
+      return <TaskList context={context} />;
+    }
+
+    if (showContexts) {
+      return (
+        <ContextList contexts={contexts} deleteContext={mutateDeleteContext} />
+      );
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -150,8 +216,11 @@ export default () => {
         selected={context}
         contexts={contexts}
         toggleContext={toggleContext}
+        showContexts={showContexts}
+        setShowContexts={setShowContexts}
+        updateContext={mutateUpdateContext}
       />
-      {context && <List context={context} />}
+      {renderList()}
       <Animated.View
         style={[
           styles.createBtnView,
@@ -179,11 +248,11 @@ export default () => {
         <TextInput
           style={[styles.textInput, { height: inputHeight }]}
           multiline
-          onChangeText={setTaskInput}
-          value={taskInput}
+          onChangeText={setInput}
+          value={input}
           onContentSizeChange={onInputSizeChange}
         />
-        <Pressable style={styles.sendBtn} onPress={mutateCreateTask}>
+        <Pressable style={styles.sendBtn} onPress={createItem}>
           <Image
             style={styles.sendBtnImg}
             source={require('../assets/send.png')}
@@ -212,6 +281,13 @@ export default () => {
 const styles = StyleSheet.create({
   container: {
     height: '100%',
+  },
+  loading: {
+    display: 'flex',
+    height: '100%',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     display: 'flex',

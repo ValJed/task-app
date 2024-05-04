@@ -34,12 +34,12 @@ export default ({ context }) => {
     },
   });
 
-  if (isPendingCtx || !context) {
-    return <Text>Loading...</Text>;
-  }
-
   if (isErrCtx) {
     return <Text>Error: {contextsErr.message}</Text>;
+  }
+
+  if (isPendingCtx || !context) {
+    return <Text>Loading...</Text>;
   }
 
   return (
