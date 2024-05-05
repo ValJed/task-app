@@ -2,10 +2,17 @@ import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
 
 import { colors } from '../lib/styles';
 
-export default ({ context, deleteContext }) => {
+export default ({ context, deleteContext, updateItem }) => {
   return (
     <View style={styles.item}>
-      <Text style={styles.text}>{context.name}</Text>
+      <Pressable
+        style={styles.textcontainer}
+        onPress={() => {
+          updateItem(context);
+        }}
+      >
+        <Text style={styles.text}>{context.name}</Text>
+      </Pressable>
       <Pressable onPress={() => deleteContext(context.id)}>
         <Image style={styles.delete} source={require('../assets/delete.png')} />
       </Pressable>
@@ -19,11 +26,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 20,
   },
+  textcontainer: {
+    flex: 1,
+  },
   text: {
     fontSize: 20,
     color: colors.text1,
     marginLeft: 10,
-    flex: 1,
   },
   delete: {
     width: 28,

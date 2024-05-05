@@ -34,6 +34,7 @@ export default () => {
   const [input, setInput] = useState('');
   const [inputHeight, setInputHeight] = useState(40);
   const [showContexts, setShowContexts] = useState(false);
+  const [updateItem, setUpdateItem] = useState(false);
   const btnAnim = useRef(new Animated.Value(0)).current;
   const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
   const sliderAnim = useRef(new Animated.Value(0)).current;
@@ -61,7 +62,6 @@ export default () => {
   const { mutate: mutateCreateContext, error: createCtxErr } = useMutation({
     mutationFn: createContext,
     onSuccess: (result) => {
-      console.log('result', result);
       hideSlider();
       queryClient.setQueryData(['contexts'], (items) => {
         return [result, ...items];
@@ -73,10 +73,7 @@ export default () => {
     mutationFn: updateContext,
     onSuccess: (result) => {
       hideSlider();
-      console.log('result', result);
-      queryClient.setQueryData(['contexts'], (items) => {
-        return items.map((ctx) => (ctx.id === result.id ? result : ctx));
-      });
+      queryClient.invalidateQueries(['contexts']);
     },
   });
 
@@ -117,8 +114,9 @@ export default () => {
       return setContext(null);
     }
 
+    const active = contexts.find((ctx) => ctx.active);
     setShowContexts(false);
-    setContext(contexts[0]);
+    setContext(active || contexts[0]);
   }, [contexts]);
 
   if (isError) {
@@ -166,6 +164,8 @@ export default () => {
 
   const hideSlider = () => {
     setSliderOpened(false);
+    setUpdateTask(false);
+    setUpdateItem(false);
     Animated.timing(sliderAnim, {
       toValue: 0,
       duration: 300,
@@ -185,6 +185,12 @@ export default () => {
     }
   };
   const createItem = () => {
+    if (updateTask) {
+    }
+
+    if (updateItem) {
+    }
+
     if (!input) {
       return;
     }
@@ -198,14 +204,24 @@ export default () => {
     }
   };
 
+  const updateItem = (item) => {
+    setUpdateItem(item);
+    setInput(item.name || item.content);
+    showSlider();
+  };
+
   const renderList = () => {
     if (context && !showContexts) {
-      return <TaskList context={context} />;
+      return <TaskList context={context} updateItem={updateItem} />;
     }
 
     if (showContexts) {
       return (
-        <ContextList contexts={contexts} deleteContext={mutateDeleteContext} />
+        <ContextList
+          contexts={contexts}
+          deleteContext={mutateDeleteContext}
+          updateItem={updateItem}
+        />
       );
     }
   };
