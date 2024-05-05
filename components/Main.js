@@ -63,7 +63,7 @@ export default () => {
     onSuccess: (result) => {
       console.log('result', result);
       hideSlider();
-      queryClient.setQueryData(['tasks', context.id], (items) => {
+      queryClient.setQueryData(['contexts'], (items) => {
         return [result, ...items];
       });
     },
@@ -73,7 +73,8 @@ export default () => {
     mutationFn: updateContext,
     onSuccess: (result) => {
       hideSlider();
-      queryClient.setQueryData(['tasks', context.id], (items) => {
+      console.log('result', result);
+      queryClient.setQueryData(['contexts'], (items) => {
         return items.map((ctx) => (ctx.id === result.id ? result : ctx));
       });
     },

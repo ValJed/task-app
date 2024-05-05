@@ -13,8 +13,6 @@ export default ({
   updateContext,
 }) => {
   const pickerRef = useRef();
-  console.log('selected', selected);
-
   const pickerItems = contexts.map(({ id, name }) => (
     <Picker.Item key={id} label={name} value={id} />
   ));
@@ -46,10 +44,11 @@ export default ({
           {pickerItems}
         </Picker>
       )}
-      <Text>toto</Text>
       <Pressable
         onPress={() => {
-          updateContext({ ...selected, active: !selected.active });
+          if (!selected.active) {
+            updateContext({ ...selected, active: true });
+          }
         }}
       >
         <Image
