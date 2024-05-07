@@ -2,13 +2,13 @@ import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
 
 import { colors } from '../lib/styles';
 
-export default ({ context, deleteContext, updateItem }) => {
+export default ({ context, deleteContext, updateItemContent }) => {
   return (
     <View style={styles.item}>
       <Pressable
         style={styles.textcontainer}
         onPress={() => {
-          updateItem(context);
+          updateItemContent(context);
         }}
       >
         <Text style={styles.text}>{context.name}</Text>

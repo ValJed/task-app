@@ -3,19 +3,32 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 
 import CheckBox from './Checkbox';
-import { updateTask, deleteTask } from '../lib/api';
 import { colors } from '../lib/styles';
 
-export default ({ id, content, done, mutateDone, mutateDelete }) => {
+export default ({
+  id,
+  content,
+  done,
+  updateTask,
+  deleteTask,
+  updateItemContent,
+}) => {
   const onToggle = () => {
-    mutateDone({ id, done: !done });
+    updateTask({ id, done: !done });
   };
 
   return (
     <View style={styles.item}>
       <CheckBox done={done} onToggle={onToggle} />
-      <Text style={styles.text}>{content}</Text>
-      <Pressable onPress={() => mutateDelete(id)}>
+      <Pressable
+        style={styles.textcontainer}
+        onPress={() => {
+          updateItemContent({ id, content });
+        }}
+      >
+        <Text style={styles.text}>{content}</Text>
+      </Pressable>
+      <Pressable onPress={() => deleteTask(id)}>
         <Image style={styles.delete} source={require('../assets/delete.png')} />
       </Pressable>
     </View>
@@ -28,11 +41,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 20,
   },
+  textcontainer: {
+    flex: 1,
+  },
   text: {
     fontSize: 20,
     color: colors.text1,
     marginLeft: 10,
-    flex: 1,
   },
   delete: {
     width: 28,

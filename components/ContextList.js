@@ -3,7 +3,7 @@ import { Text, FlatList } from 'react-native';
 
 import Context from './Context';
 
-export default ({ contexts, deleteContext, updateItem }) => {
+export default ({ contexts, deleteContext, updateItemContent }) => {
   return (
     <FlatList
       data={contexts}
@@ -11,7 +11,7 @@ export default ({ contexts, deleteContext, updateItem }) => {
         <Context
           context={item}
           deleteContext={deleteContext}
-          updateItem={updateItem}
+          updateItemContent={updateItemContent}
         />
       )}
       keyExtractor={(item) => item.id}

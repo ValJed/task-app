@@ -19,6 +19,7 @@ import TaskList from './TaskList';
 import {
   fetchContexts,
   createTask,
+  updateTask,
   createContext,
   deleteContext,
   updateContext,
@@ -34,7 +35,7 @@ export default () => {
   const [input, setInput] = useState('');
   const [inputHeight, setInputHeight] = useState(40);
   const [showContexts, setShowContexts] = useState(false);
-  const [updateItem, setUpdateItem] = useState(false);
+  const [itemToUpdate, setItemToUpdate] = useState(false);
   const btnAnim = useRef(new Animated.Value(0)).current;
   const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
   const sliderAnim = useRef(new Animated.Value(0)).current;
@@ -55,6 +56,16 @@ export default () => {
       hideSlider();
       queryClient.setQueryData(['tasks', context.id], (items) => {
         return [result, ...items];
+      });
+    },
+  });
+
+  const { mutate: mutateUpdateTask, error: doneErr } = useMutation({
+    mutationFn: ({ id, ...data }) => updateTask(id, data),
+    onSuccess: (result) => {
+      hideSlider();
+      queryClient.setQueryData(['tasks', context.id], (items) => {
+        return items.map((item) => (item.id === result.id ? result : item));
       });
     },
   });
@@ -164,8 +175,7 @@ export default () => {
 
   const hideSlider = () => {
     setSliderOpened(false);
-    setUpdateTask(false);
-    setUpdateItem(false);
+    setItemToUpdate(false);
     Animated.timing(sliderAnim, {
       toValue: 0,
       duration: 300,
@@ -184,14 +194,18 @@ export default () => {
       setInputHeight(nativeEvent.contentSize.height);
     }
   };
-  const createItem = () => {
-    if (updateTask) {
-    }
-
-    if (updateItem) {
-    }
-
+  const enterInput = () => {
     if (!input) {
+      return;
+    }
+
+    if (itemToUpdate) {
+      if (itemToUpdate.name) {
+        mutateUpdateContext({ ...itemToUpdate, name: input });
+      } else {
+        mutateUpdateTask({ id: itemToUpdate.id, content: input });
+      }
+      setItemToUpdate(false);
       return;
     }
 
@@ -204,15 +218,21 @@ export default () => {
     }
   };
 
-  const updateItem = (item) => {
-    setUpdateItem(item);
+  const updateItemContent = (item) => {
+    setItemToUpdate(item);
     setInput(item.name || item.content);
     showSlider();
   };
 
   const renderList = () => {
     if (context && !showContexts) {
-      return <TaskList context={context} updateItem={updateItem} />;
+      return (
+        <TaskList
+          context={context}
+          updateTask={mutateUpdateTask}
+          updateItemContent={updateItemContent}
+        />
+      );
     }
 
     if (showContexts) {
@@ -220,7 +240,7 @@ export default () => {
         <ContextList
           contexts={contexts}
           deleteContext={mutateDeleteContext}
-          updateItem={updateItem}
+          updateItemContent={updateItemContent}
         />
       );
     }
@@ -269,7 +289,7 @@ export default () => {
           value={input}
           onContentSizeChange={onInputSizeChange}
         />
-        <Pressable style={styles.sendBtn} onPress={createItem}>
+        <Pressable style={styles.sendBtn} onPress={enterInput}>
           <Image
             style={styles.sendBtnImg}
             source={require('../assets/send.png')}

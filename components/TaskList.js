@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FlatList, Text } from 'react-native';
 
 import Task from './Task';
-import { fetchTasks, createTask, deleteTask, updateTask } from '../lib/api';
+import { fetchTasks, deleteTask } from '../lib/api';
 
-export default ({ context }) => {
+export default ({ context, updateTask, updateItemContent }) => {
   const queryClient = useQueryClient();
   const {
     isPending: isPendingCtx,
@@ -14,15 +14,6 @@ export default ({ context }) => {
   } = useQuery({
     queryKey: ['tasks', context.id],
     queryFn: () => fetchTasks(context.id),
-  });
-
-  const { mutate: mutateDone, error: doneErr } = useMutation({
-    mutationFn: ({ id, done }) => updateTask(id, { done }),
-    onSuccess: (result) => {
-      queryClient.setQueryData(['tasks', context.id], (tasks) => {
-        return tasks.map((task) => (task.id === result.id ? result : task));
-      });
-    },
   });
 
   const { mutate: mutateDelete, error: deleteErr } = useMutation({
@@ -50,8 +41,9 @@ export default ({ context }) => {
           id={item.id}
           content={item.content}
           done={item.done}
-          mutateDone={mutateDone}
-          mutateDelete={mutateDelete}
+          updateTask={updateTask}
+          deleteTask={mutateDelete}
+          updateItemContent={updateItemContent}
         />
       )}
       keyExtractor={(item) => item.id}
