@@ -15,6 +15,7 @@ import {
 import ContextList from './ContextList';
 import Header from './Header';
 import Loading from './Loading';
+import Menu from './Menu';
 import TaskList from './TaskList';
 import {
   fetchContexts,
@@ -36,6 +37,7 @@ export default () => {
   const [inputHeight, setInputHeight] = useState(40);
   const [showContexts, setShowContexts] = useState(false);
   const [itemToUpdate, setItemToUpdate] = useState(false);
+  const [menuOpened, setMenuOpened] = useState(false);
   const btnAnim = useRef(new Animated.Value(0)).current;
   const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
   const sliderAnim = useRef(new Animated.Value(0)).current;
@@ -47,6 +49,7 @@ export default () => {
     data: contexts,
   } = useQuery({
     queryKey: ['contexts'],
+
     queryFn: fetchContexts,
   });
 
@@ -225,6 +228,10 @@ export default () => {
   };
 
   const renderList = () => {
+    if (menuOpened) {
+      return <Menu />;
+    }
+
     if (context && !showContexts) {
       return (
         <TaskList
@@ -256,6 +263,8 @@ export default () => {
         showContexts={showContexts}
         setShowContexts={setShowContexts}
         updateContext={mutateUpdateContext}
+        menuOpened={menuOpened}
+        setMenuOpened={setMenuOpened}
       />
       {renderList()}
       <Animated.View

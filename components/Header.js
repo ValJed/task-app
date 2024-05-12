@@ -11,6 +11,8 @@ export default ({
   showContexts,
   setShowContexts,
   updateContext,
+  menuOpened,
+  setMenuOpened,
 }) => {
   const pickerRef = useRef();
   const pickerItems = contexts.map(({ id, name }) => (
@@ -76,10 +78,17 @@ export default ({
       </Pressable>
       <Pressable
         onPress={() => {
-          console.log('press');
+          setMenuOpened(!menuOpened);
         }}
       >
-        <Image style={styles.image} source={require('../assets/menu.png')} />
+        <Image
+          style={styles.image}
+          source={
+            menuOpened
+              ? require('../assets/plus.png')
+              : require('../assets/menu.png')
+          }
+        />
       </Pressable>
     </View>
   );
