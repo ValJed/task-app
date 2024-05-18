@@ -15,11 +15,13 @@ export default ({
   setMenuOpened,
 }) => {
   const pickerRef = useRef();
-  const pickerItems = contexts.map(({ id, name }) => (
+  const pickerItems = (contexts || []).map(({ id, name }) => (
     <Picker.Item key={id} label={name} value={id} />
   ));
   const openPicker = () => {
-    pickerRef.current.focus();
+    if (pickerRef) {
+      pickerRef.current.focus();
+    }
   };
 
   return (
@@ -53,14 +55,16 @@ export default ({
           }
         }}
       >
-        <Image
-          style={styles.image}
-          source={
-            selected?.active
-              ? require('../assets/star_yellow.png')
-              : require('../assets/star.png')
-          }
-        />
+        {selected && (
+          <Image
+            style={styles.image}
+            source={
+              selected?.active
+                ? require('../assets/star_yellow.png')
+                : require('../assets/star.png')
+            }
+          />
+        )}
       </Pressable>
       <Pressable
         onPress={() => {
@@ -85,7 +89,7 @@ export default ({
           style={styles.image}
           source={
             menuOpened
-              ? require('../assets/plus.png')
+              ? require('../assets/close.png')
               : require('../assets/menu.png')
           }
         />

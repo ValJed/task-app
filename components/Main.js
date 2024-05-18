@@ -25,6 +25,7 @@ import {
   deleteContext,
   updateContext,
 } from '../lib/api';
+import { getApiData } from '../lib/store';
 import { colors } from '../lib/styles';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -38,9 +39,14 @@ export default () => {
   const [showContexts, setShowContexts] = useState(false);
   const [itemToUpdate, setItemToUpdate] = useState(false);
   const [menuOpened, setMenuOpened] = useState(false);
+  const [apiData, setApiData] = useState({});
   const btnAnim = useRef(new Animated.Value(0)).current;
   const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
   const sliderAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    getApiData().then(setApiData);
+  }, []);
 
   const {
     isPending,
@@ -133,11 +139,11 @@ export default () => {
     setContext(active || contexts[0]);
   }, [contexts]);
 
-  if (isError) {
-    return <Loading text={`Error: ${error.message}`} />;
+  if (!apiData.apiUrl || !apiData.apiKey) {
+    return <Menu noHeader />;
   }
 
-  if (isPending || !Array.isArray(contexts)) {
+  if (isPending) {
     return <Loading text="Loading..." />;
   }
 
@@ -230,6 +236,10 @@ export default () => {
   const renderList = () => {
     if (menuOpened) {
       return <Menu />;
+    }
+
+    if (isError) {
+      return <Loading text={`Error: ${error.message}`} />;
     }
 
     if (context && !showContexts) {
