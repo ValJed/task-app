@@ -32,10 +32,6 @@ export default ({
             {selected?.name || 'Create a context'}
           </Text>
         </Pressable>
-        {/* <Image */}
-        {/*   style={styles.selectImg} */}
-        {/*   source={require('../assets/chevron.png')} */}
-        {/* /> */}
       </View>
       {selected && (
         <Picker
@@ -124,6 +120,8 @@ const styles = StyleSheet.create({
     color: colors.text2,
     fontSize: 20,
     textAlign: 'left',
+    maxWidth: 200,
+    paddingRight: 10,
   },
   image: {
     width: 28,
