@@ -1,10 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FlatList, Text } from 'react-native';
+import { FlatList, Text, StyleSheet } from 'react-native';
 
+import Loading from './Loading';
 import Task from './Task';
-import { fetchTasks, deleteTask } from '../lib/api';
 
-export default ({ context, updateTask, updateItemContent }) => {
+export default ({
+  context,
+  updateTask,
+  updateItemContent,
+  fetchTasks,
+  deleteTask,
+}) => {
   const queryClient = useQueryClient();
   const {
     isPending: isPendingCtx,
@@ -16,21 +22,24 @@ export default ({ context, updateTask, updateItemContent }) => {
     queryFn: () => fetchTasks(context.id),
   });
 
-  const { mutate: mutateDelete, error: deleteErr } = useMutation({
+  const { mutate: mutateDelete } = useMutation({
     mutationFn: deleteTask,
     onSuccess: (result) => {
       queryClient.setQueryData(['tasks', context.id], (tasks) => {
         return tasks.filter((task) => task.id !== result.id);
       });
     },
+    onError: (err) => {
+      console.error(err);
+    },
   });
 
   if (isErrCtx) {
-    return <Text>Error: {contextsErr.message}</Text>;
+    return <Loading text={`Error: ${contextsErr.message}`} />;
   }
 
   if (isPendingCtx || !context) {
-    return <Text>Loading...</Text>;
+    return <Loading text="Loading..." />;
   }
 
   return (

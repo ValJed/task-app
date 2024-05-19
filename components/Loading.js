@@ -1,8 +1,8 @@
 import { Text, View, StyleSheet } from 'react-native';
 
-export default ({ text }) => (
+export default ({ header, text }) => (
   <View style={styles.container}>
-    <Text style={styles.loading}>{text}</Text>
+    <Text>{text}</Text>
   </View>
 );
 

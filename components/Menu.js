@@ -4,13 +4,9 @@ import { Text, View, TextInput, StyleSheet, Pressable } from 'react-native';
 import { storeApiData } from '../lib/store';
 import { colors } from '../lib/styles';
 
-export default ({ noHeader }) => {
-  const [apiUrl, setApiUrl] = useState('');
-  const [apiKey, setApiKey] = useState('');
-
-  function save() {
-    storeApiData(apiUrl, apiKey);
-  }
+export default ({ noHeader, apiData, saveApiData }) => {
+  const [apiUrl, setApiUrl] = useState(apiData.apiUrl || '');
+  const [apiKey, setApiKey] = useState(apiData.apiKey || '');
 
   return (
     <View style={[styles.menuContainer, { paddingTop: noHeader ? 100 : 0 }]}>
@@ -29,7 +25,7 @@ export default ({ noHeader }) => {
         placeholder="API key"
         value={apiKey}
       />
-      <Pressable style={styles.btn} onPress={save}>
+      <Pressable style={styles.btn} onPress={() => saveApiData(apiUrl, apiKey)}>
         <Text style={styles.text}>Save</Text>
       </Pressable>
     </View>

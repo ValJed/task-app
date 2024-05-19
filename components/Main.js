@@ -7,7 +7,6 @@ import {
   Image,
   Pressable,
   Animated,
-  Text,
   TextInput,
   Dimensions,
 } from 'react-native';
@@ -17,15 +16,8 @@ import Header from './Header';
 import Loading from './Loading';
 import Menu from './Menu';
 import TaskList from './TaskList';
-import {
-  fetchContexts,
-  createTask,
-  updateTask,
-  createContext,
-  deleteContext,
-  updateContext,
-} from '../lib/api';
-import { getApiData } from '../lib/store';
+import getApiActions from '../lib/api';
+import { getApiData, storeApiData } from '../lib/store';
 import { colors } from '../lib/styles';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -39,13 +31,19 @@ export default () => {
   const [showContexts, setShowContexts] = useState(false);
   const [itemToUpdate, setItemToUpdate] = useState(false);
   const [menuOpened, setMenuOpened] = useState(false);
-  const [apiData, setApiData] = useState({});
+  const [apiData, setApiData] = useState({ apiUrl: '', apiKey: '' });
+  const [api, setApi] = useState({});
   const btnAnim = useRef(new Animated.Value(0)).current;
   const sliderSize = useMemo(() => inputHeight + 20, [inputHeight]);
   const sliderAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    getApiData().then(setApiData);
+    getApiData()
+      .then((data) => {
+        setApiData(data);
+        setApi(getApiActions(data));
+      })
+      .catch((err) => console.error(err.message));
   }, []);
 
   const {
@@ -56,49 +54,61 @@ export default () => {
   } = useQuery({
     queryKey: ['contexts'],
 
-    queryFn: fetchContexts,
+    queryFn: api.fetchContexts,
   });
 
-  const { mutate: mutateCreateTask, error: createTaskErr } = useMutation({
-    mutationFn: createTask,
-    onSuccess: (result) => {
+  const { mutate: mutateCreateTask } = useMutation({
+    mutationFn: api.createTask,
+    onSuccess(result) {
       hideSlider();
       queryClient.setQueryData(['tasks', context.id], (items) => {
         return [result, ...items];
       });
     },
+    onError(err) {
+      console.error(err);
+    },
   });
 
   const { mutate: mutateUpdateTask, error: doneErr } = useMutation({
-    mutationFn: ({ id, ...data }) => updateTask(id, data),
-    onSuccess: (result) => {
+    mutationFn: ({ id, ...data }) => api.updateTask(id, data),
+    onSuccess(result) {
       hideSlider();
       queryClient.setQueryData(['tasks', context.id], (items) => {
         return items.map((item) => (item.id === result.id ? result : item));
       });
     },
+    onError(err) {
+      console.error(err);
+    },
   });
 
-  const { mutate: mutateCreateContext, error: createCtxErr } = useMutation({
-    mutationFn: createContext,
+  const { mutate: mutateCreateContext } = useMutation({
+    mutationFn: api.createContext,
     onSuccess: (result) => {
       hideSlider();
       queryClient.setQueryData(['contexts'], (items) => {
         return [result, ...items];
       });
     },
+    onError(err) {
+      console.error(err);
+    },
   });
 
-  const { mutate: mutateUpdateContext, error: updateCtxErr } = useMutation({
-    mutationFn: updateContext,
+  const { mutate: mutateUpdateContext } = useMutation({
+    mutationFn: api.updateContext,
     onSuccess: (result) => {
       hideSlider();
       queryClient.invalidateQueries(['contexts']);
     },
+    onError(err) {
+      console.error(err);
+    },
   });
 
-  const { mutate: mutateDeleteContext, error: deleteCtxErr } = useMutation({
-    mutationFn: deleteContext,
+  const { mutate: mutateDeleteContext } = useMutation({
+    mutationFn: api.deleteContext,
     onSuccess: (result) => {
       if (context && context.id === result.id) {
         setContext(contexts[0] || null);
@@ -106,6 +116,9 @@ export default () => {
       queryClient.setQueryData(['contexts'], (items) => {
         return items.filter((ctx) => ctx.id !== result.id);
       });
+    },
+    onError(err) {
+      console.error(err);
     },
   });
 
@@ -139,9 +152,9 @@ export default () => {
     setContext(active || contexts[0]);
   }, [contexts]);
 
-  if (!apiData.apiUrl || !apiData.apiKey) {
-    return <Menu noHeader />;
-  }
+  /* if (!apiData.apiUrl || !apiData.apiKey) { */
+  /*   return <Menu noHeader saveApiData={saveApiData} />; */
+  /* } */
 
   if (isPending) {
     return <Loading text="Loading..." />;
@@ -165,6 +178,17 @@ export default () => {
     }
 
     showSlider();
+  }
+
+  async function saveApiData(apiUrl, apiKey) {
+    storeApiData(apiUrl, apiKey);
+
+    try {
+      const api = await getApiActions(apiData);
+      setApi(api);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function showSlider() {
@@ -235,10 +259,13 @@ export default () => {
 
   const renderList = () => {
     if (menuOpened) {
-      return <Menu />;
+      return <Menu saveApiData={saveApiData} apiData={apiData} />;
     }
 
     if (isError) {
+      if (!apiData.apiUrl || !apiData.apiKey) {
+        return <Loading text="Configure API Data first" />;
+      }
       return <Loading text={`Error: ${error.message}`} />;
     }
 
@@ -248,6 +275,8 @@ export default () => {
           context={context}
           updateTask={mutateUpdateTask}
           updateItemContent={updateItemContent}
+          fetchTasks={api.fetchTasks}
+          deleteTask={api.deleteTask}
         />
       );
     }
@@ -315,21 +344,6 @@ export default () => {
           />
         </Pressable>
       </Animated.View>
-
-      {/* <View style={styles.centeredView}> */}
-      {/*   <Modal */}
-      {/*     animationType="slide" */}
-      {/*     transparent */}
-      {/*     visible={taskModalOpened} */}
-      {/*     onRequestClose={() => { */}
-      {/*       setTaskModalOpened(false); */}
-      {/*     }} */}
-      {/*   > */}
-      {/*     <View style={styles.centeredView}> */}
-      {/*       <Text>Modal</Text> */}
-      {/*     </View> */}
-      {/*   </Modal> */}
-      {/* </View> */}
     </View>
   );
 };
@@ -337,13 +351,6 @@ export default () => {
 const styles = StyleSheet.create({
   container: {
     height: '100%',
-  },
-  loading: {
-    display: 'flex',
-    height: '100%',
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     display: 'flex',
