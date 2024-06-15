@@ -168,6 +168,7 @@ export default () => {
   const toggleContext = (id) => {
     const selected = contexts.find((ctx) => ctx.id === id);
     if (selected) {
+      setShowContexts(false);
       return setContext(selected);
     }
   };
