@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Text, View, TextInput, StyleSheet, Pressable } from 'react-native';
 
-import { storeApiData } from '../lib/store';
 import { colors } from '../lib/styles';
 
 export default ({ noHeader, apiData, saveApiData }) => {

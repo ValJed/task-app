@@ -52,8 +52,7 @@ export default () => {
     error,
     data: contexts,
   } = useQuery({
-    queryKey: ['contexts'],
-
+    queryKey: ['contexts', 'apiData'],
     queryFn: api.fetchContexts,
   });
 

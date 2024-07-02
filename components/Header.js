@@ -19,7 +19,7 @@ export default ({
     <Picker.Item key={id} label={name} value={id} />
   ));
   const openPicker = () => {
-    if (pickerRef) {
+    if (pickerRef?.current) {
       pickerRef.current.focus();
     }
   };
