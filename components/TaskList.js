@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FlatList, Text, StyleSheet } from 'react-native';
+import { FlatList } from 'react-native';
 
 import Loading from './Loading';
 import Task from './Task';
@@ -44,6 +44,7 @@ export default ({
 
   return (
     <FlatList
+      contentContainerStyle={{ paddingBottom: 70 }}
       data={tasks}
       renderItem={({ item }) => (
         <Task

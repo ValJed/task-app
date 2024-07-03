@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { Text, FlatList } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 
 import Context from './Context';
 
@@ -7,6 +6,7 @@ export default ({ contexts, deleteContext, updateItemContent }) => {
   return (
     <FlatList
       data={contexts}
+      contentContainerStyle={{ paddingBottom: 70 }}
       renderItem={({ item }) => (
         <Context
           context={item}
