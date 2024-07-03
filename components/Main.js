@@ -69,7 +69,7 @@ export default () => {
     },
   });
 
-  const { mutate: mutateUpdateTask, error: doneErr } = useMutation({
+  const { mutate: mutateUpdateTask } = useMutation({
     mutationFn: ({ id, ...data }) => api.updateTask(id, data),
     onSuccess(result) {
       hideSlider();
@@ -86,7 +86,7 @@ export default () => {
     mutationFn: api.createContext,
     onSuccess: (result) => {
       hideSlider();
-      queryClient.setQueryData(['contexts'], (items) => {
+      queryClient.setQueryData(['contexts', 'apiData'], (items) => {
         return [result, ...items];
       });
     },
@@ -99,7 +99,7 @@ export default () => {
     mutationFn: api.updateContext,
     onSuccess: (result) => {
       hideSlider();
-      queryClient.invalidateQueries(['contexts']);
+      queryClient.invalidateQueries(['contexts', 'apiData']);
     },
     onError(err) {
       console.error(err);
@@ -112,8 +112,8 @@ export default () => {
       if (context && context.id === result.id) {
         setContext(contexts[0] || null);
       }
-      queryClient.setQueryData(['contexts'], (items) => {
-        return items.filter((ctx) => ctx.id !== result.id);
+      queryClient.setQueryData(['contexts', 'apiData'], (items) => {
+        return items?.filter((ctx) => ctx.id !== result.id) || [];
       });
     },
     onError(err) {
@@ -147,7 +147,6 @@ export default () => {
     }
 
     const active = contexts.find((ctx) => ctx.active);
-    setShowContexts(false);
     setContext(active || contexts[0]);
   }, [contexts]);
 
@@ -181,11 +180,12 @@ export default () => {
   }
 
   async function saveApiData(apiUrl, apiKey) {
-    storeApiData(apiUrl, apiKey);
-
     try {
+      await storeApiData(apiUrl, apiKey);
+      setApiData({ apiUrl, apiKey });
       const api = await getApiActions(apiData);
       setApi(api);
+      setMenuOpened(false);
     } catch (err) {
       console.error(err);
     }
@@ -351,6 +351,7 @@ export default () => {
 const styles = StyleSheet.create({
   container: {
     height: '100%',
+    marginBottom: 50,
   },
   header: {
     display: 'flex',
@@ -367,6 +368,9 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.text1,
+  },
+  list: {
+    paddingBottom: 50,
   },
   createBtnView: {
     width: 45,
