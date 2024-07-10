@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "task-react",
-    "slug": "task-react",
+    "name": "task",
+    "slug": "task",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,10 +21,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2D0605"
-      }
+      },
+      "package": "com.valjed.taskreact"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5f07079d-c0db-4f52-a8d1-8044503d7c4d"
+      }
     }
   }
 }
