@@ -182,9 +182,10 @@ export default () => {
   async function saveApiData(apiUrl, apiKey) {
     try {
       await storeApiData(apiUrl, apiKey);
-      setApiData({ apiUrl, apiKey });
-      const api = await getApiActions(apiData);
+      const api = await getApiActions({ apiUrl, apiKey });
       setApi(api);
+      setApiData({ apiUrl, apiKey });
+      queryClient.invalidateQueries(['contexts', 'apiData']);
       setMenuOpened(false);
     } catch (err) {
       console.error(err);
