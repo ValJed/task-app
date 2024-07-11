@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "task",
-    "slug": "task",
+    "slug": "task-react",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -31,6 +31,16 @@
       "eas": {
         "projectId": "5f07079d-c0db-4f52-a8d1-8044503d7c4d"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ]
   }
 }
