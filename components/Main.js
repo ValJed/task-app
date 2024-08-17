@@ -24,6 +24,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default () => {
   const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(true);
   const [context, setContext] = useState(null);
   const [sliderOpened, setSliderOpened] = useState(false);
   const [input, setInput] = useState('');
@@ -142,19 +143,17 @@ export default () => {
 
   useEffect(() => {
     if (!contexts || !contexts.length) {
-      setShowContexts(true);
       return setContext(null);
+    } else {
+      const active = contexts.find((ctx) => ctx.active);
+      setContext(active || contexts[0]);
     }
+    if (isLoading) {
+      setIsLoading(false);
+    }
+  }, [contexts, isLoading]);
 
-    const active = contexts.find((ctx) => ctx.active);
-    setContext(active || contexts[0]);
-  }, [contexts]);
-
-  /* if (!apiData.apiUrl || !apiData.apiKey) { */
-  /*   return <Menu noHeader saveApiData={saveApiData} />; */
-  /* } */
-
-  if (isPending) {
+  if (isLoading) {
     return <Loading text="Loading..." />;
   }
 
@@ -228,6 +227,7 @@ export default () => {
       setInputHeight(nativeEvent.contentSize.height);
     }
   };
+
   const enterInput = () => {
     if (!input) {
       return;
@@ -280,9 +280,7 @@ export default () => {
           deleteTask={api.deleteTask}
         />
       );
-    }
-
-    if (showContexts) {
+    } else {
       return (
         <ContextList
           contexts={contexts}
