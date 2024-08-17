@@ -153,7 +153,7 @@ export default () => {
     }
   }, [contexts, isLoading]);
 
-  if (isLoading) {
+  if (isPending || isLoading) {
     return <Loading text="Loading..." />;
   }
 
@@ -283,6 +283,7 @@ export default () => {
     } else {
       return (
         <ContextList
+          isPending={isPending}
           contexts={contexts}
           deleteContext={mutateDeleteContext}
           updateItemContent={updateItemContent}

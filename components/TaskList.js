@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FlatList } from 'react-native';
+import { useState, useCallback } from 'react';
+import { FlatList, RefreshControl } from 'react-native';
 
 import Loading from './Loading';
 import Task from './Task';
@@ -13,9 +14,9 @@ export default ({
 }) => {
   const queryClient = useQueryClient();
   const {
-    isPending: isPendingCtx,
-    isError: isErrCtx,
-    error: contextsErr,
+    isPending,
+    isError,
+    error,
     data: tasks,
   } = useQuery({
     queryKey: ['tasks', context.id],
@@ -34,11 +35,11 @@ export default ({
     },
   });
 
-  if (isErrCtx) {
-    return <Loading text={`Error: ${contextsErr.message}`} />;
+  if (isError) {
+    return <Loading text={`Error: ${error.message}`} />;
   }
 
-  if (isPendingCtx || !context) {
+  if (isPending || !context) {
     return <Loading text="Loading..." />;
   }
 
@@ -57,6 +58,12 @@ export default ({
         />
       )}
       keyExtractor={(item) => item.id}
+      refreshControl={
+        <RefreshControl
+          refreshing={isPending}
+          onRefresh={() => queryClient.invalidateQueries(['tasks', context.id])}
+        />
+      }
     />
   );
 };

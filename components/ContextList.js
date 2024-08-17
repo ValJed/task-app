@@ -1,8 +1,10 @@
-import { FlatList, StyleSheet } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { FlatList, RefreshControl } from 'react-native';
 
 import Context from './Context';
 
-export default ({ contexts, deleteContext, updateItemContent }) => {
+export default ({ contexts, deleteContext, updateItemContent, isPending }) => {
+  const queryClient = useQueryClient();
   return (
     <FlatList
       data={contexts}
@@ -15,6 +17,14 @@ export default ({ contexts, deleteContext, updateItemContent }) => {
         />
       )}
       keyExtractor={(item) => item.id}
+      refreshControl={
+        <RefreshControl
+          refreshing={isPending}
+          onRefresh={() =>
+            queryClient.invalidateQueries(['contexts', 'apiData'])
+          }
+        />
+      }
     />
   );
 };
