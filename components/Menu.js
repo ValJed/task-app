@@ -12,17 +12,16 @@ export default ({ noHeader, apiData, saveApiData }) => {
       <Text style={styles.title}>Settings</Text>
       <TextInput
         style={styles.textInput}
-        multiline
         onChangeText={setApiUrl}
         placeholder="API url"
         value={apiUrl}
       />
       <TextInput
         style={styles.textInput}
-        multiline
         onChangeText={setApiKey}
         placeholder="API key"
         value={apiKey}
+        secureTextEntry
       />
       <Pressable style={styles.btn} onPress={() => saveApiData(apiUrl, apiKey)}>
         <Text style={styles.text}>Save</Text>
