@@ -27,7 +27,9 @@ export default ({
     mutationFn: deleteTask,
     onSuccess: (result) => {
       queryClient.setQueryData(['tasks', context.id], (tasks) => {
-        return tasks.filter((task) => task.id !== result.id);
+        return tasks.filter(
+          (task) => !result.some((deleted) => task.id === deleted.id),
+        );
       });
     },
     onError: (err) => {
